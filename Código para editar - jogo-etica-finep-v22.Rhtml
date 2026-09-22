@@ -1,0 +1,620 @@
+<!-- versão 21 -  remodelado - 07/08/2026 -->
+
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Comissão de Ética da Finep</title>
+
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background-color: #F1781B;
+  color: white;
+}
+
+/* ================= HEADER ================= */
+header {
+  background: #005051;
+  padding: 20px 50px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+header nav a {
+  color: white;
+  text-decoration: none;
+  margin-left: 35px;
+  font-size: 1.1rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  transition: color 0.2s;
+}
+
+header nav a:hover {
+  color: #F1781B;
+}
+
+/* ================= CONTAINERS ================= */
+.container {
+  max-width: 1000px;
+  margin: 60px auto;
+  background: rgba(105, 80, 161, 0.9);
+  border-radius: 16px;
+  padding: 48px;
+  text-align: center;
+  box-shadow: 0 6px 28px rgba(0,0,0,.3);
+}
+
+/* ================= BOTÕES ================= */
+.button-start, .choiceBtn, #backBtn {
+  background-color: #005051;
+  border: none;
+  padding: 14px 40px;
+  border-radius: 12px;
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.choiceBtn {
+  background: #F1781B;
+  margin-right: 10px;
+}
+.choiceBtn:hover { background: #d97704; }
+.button-start:hover, #backBtn:hover { background: #003932; }
+
+/* ================= MENU ================= */
+#mainMenu .cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.card {
+  background: #005051;
+  border-radius: 12px;
+  padding: 20px;
+  cursor: pointer;
+  transition: transform .15s;
+}
+.card:hover {
+  transform: scale(1.05);
+}
+
+/* ================= VISUAL NOVEL ================= */
+/* CORREÇÃO: havia duas regras #visualNovel; unificadas em uma só. */
+#visualNovel {
+  display: none;
+  flex-direction: column;
+  max-width: 960px;
+  margin: 40px auto;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #005051;
+}
+/* CORREÇÃO: adicionado position:relative — é o pai dos elementos absolutos */
+#sceneArea {
+  position: relative;
+  min-height: 420px;
+}
+#background {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 1;
+  transition: opacity .3s ease; /* CORREÇÃO: efeito de fade agora funciona */
+}
+#character {
+  position: absolute;
+  bottom: 150px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-height: 65%;
+  display: none;
+}
+
+/* ================= TEXTO ================= */
+#textBox {
+  background: #005051;
+  padding: 25px;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  white-space: pre-line; /* preserva as quebras de linha do texto */
+  position: relative;
+  z-index: 1;
+}
+#choices {
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
+}
+
+/* ================= MODAL ================= */
+#infoModal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.4);
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+#modalContent {
+  background: white;
+  color: #005051;
+  padding: 36px;
+  border-radius: 16px;
+  max-width: 500px;
+  position: relative;
+}
+#modalCloseBtn {
+  position: absolute;
+  top: 10px;
+  right: 16px;
+  cursor: pointer;
+  color: #F1781B;
+  font-size: 1.4rem;
+}
+
+/* ================= BOTÃO SAIR ================= */
+#backBtn {
+  display: none;
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 50px;
+  height: 50px;
+  border: none;
+  border-radius: 50%;
+  background: #005051;
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  z-index: 9999;
+}
+#backBtn:hover {
+  background: #F1781B;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <strong style="font-size: 22px;">Comissão de Ética da Finep</strong>
+  <nav>
+    <a href="#" id="sobreLink">Sobre</a>
+    <a href="#" id="fontesLink">Fontes</a>
+    <a href="#" id="contatoLink">Contato</a>
+  </nav>
+</header>
+
+<div class="container" id="introContainer">
+  <h1>Bem-vindos!</h1>
+  <p>Esta Gameficação é uma iniciativa da Comissão de Ética da Finep para estimular a reflexão sobre respeito, assédio moral, sexual e cyberbullying em ambientes Físicos e digitais.</p>
+  <button class="button-start" id="startButton">Começar</button>
+</div>
+
+<div class="container" id="mainMenu" style="display:none;">
+  <h2>Escolha o cenário:</h2>
+  <div class="cards">
+    <div class="card" data-scenario="moral">Assédio Moral</div>
+    <div class="card" data-scenario="sexual">Assédio Sexual</div>
+    <div class="card" data-scenario="cyberbullying">Cyberbullying</div>
+  </div>
+</div>
+
+<div id="visualNovel">
+  <div id="sceneArea">
+    <div id="background"></div>
+    <img id="character" alt="">
+    <button id="backBtn">✕</button>
+  </div>
+  <div id="textBox">
+    <div id="narrationText"></div>
+    <div id="choices"></div>
+  </div>
+</div>
+
+<div id="infoModal">
+  <div id="modalContent">
+    <span id="modalCloseBtn">×</span>
+    <div id="infoText"></div>
+  </div>
+</div>
+
+<script>
+const intro = document.getElementById('introContainer');
+const menu = document.getElementById('mainMenu');
+const novel = document.getElementById('visualNovel');
+const bg = document.getElementById('background');
+const text = document.getElementById('narrationText');
+const choices = document.getElementById('choices');
+const backBtn = document.getElementById('backBtn');
+const infoModal = document.getElementById('infoModal');
+const infoText = document.getElementById('infoText');
+const modalCloseBtn = document.getElementById('modalCloseBtn');
+
+const scenarios = {
+  "moral": {
+    script: [
+      // cena 01
+      {
+        text: "Mário chega ao trabalho motivado. A caminho da sala de reunião, pensa:\n\"Espero conseguir apresentar minha ideia hoje... Preciso apresentar esta proposta de projeto antes que ele me exponha novamente.\"",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Remodelado---Imagens---AM/Cena%2001%20-%20AM.jpg?raw=true",
+        choices: [{ text: "Continuar", next: 1 }]
+      },
+      // cena 02
+      {
+        text: "Quando Mário começa a comentar sua proposta, Carlos o interrompe ironicamente, soltando um suspiro de deboche na frente de todos:\n\"Lá vem o Mário de novo perdendo o tempo de todo mundo com bobagem... Guarde suas \"ideias\" para você, Mário. Ninguém aqui tem paciência para o seu amadorismo.\"",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Remodelado---Imagens---AM/Cena%2002%20-%20AM.jpg?raw=true",
+        choices: [{ text: "Ouvir em silêncio", next: 2 }]
+      },
+      // cena 03
+      {
+        text: "Encarando Mário com desprezo perante a equipe, Carlos arremata:\n\"Essa sua proposta é medíocre, exatamente como seu desempenho. Você só serve para atrasar o time e não agrega em nada por aqui. É bom você se mexer, porque gente inútil a gente substitui fácil. Vamos seguir com quem realmente produz.\"",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Remodelado---Imagens---AM/Cena%2003%20-%20AM.jpg?raw=true",
+        choices: [{ text: "Sentir os sentimentos de Mário", next: 3 }]
+      },
+      // cena 04
+      {
+        text: "Mário fica constrangido e começa a se questionar:\n\"Será que meu trabalho realmente não tem valor? Ou isso já passou do limite?\"",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Remodelado---Imagens---AM/Cena%2004%20-%20AM.jpg?raw=true",
+        choices: [{ text: "Desabafar com Manuela", next: 4 }]
+      },
+      // cena 05
+      {
+        text: "Mário procura o colega Manuela e desabafa:\n\"Eu não sei mais o que fazer. O Carlos me interrompe, desqualifica minhas ideias e me expõe nas reuniões. Isso já virou assédio moral?\"",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Remodelado---Imagens---AM/Cena%2005%20-%20AM.jpg?raw=true",
+        choices: [{ text: "Ouvir Manuela", next: 5 }]
+      },
+      // cena 06
+      {
+        text: "Manuela responde com seriedade:\n\"Sim, Mário. Quando a pessoa humilha, desqualifica e expõe alguém de forma repetida, isso pode caracterizar assédio moral.\"",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Remodelado---Imagens---AM/Cena%2006%20-%20AM.jpg?raw=true",
+        choices: [{ text: "Refletir sobre o que fazer", next: 6 }]
+      },
+      // cena 07
+      {
+        text: "Mário respira fundo e pensa:\n\"Preciso agir com calma. Não posso normalizar isso nem reagir de forma impulsiva.\"",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Remodelado---Imagens---AM/Cena%2007%20-%20AM.jpg?raw=true",
+        choices: [{ text: "Ignorar e sofrer em silêncio", next: 7 }, { text: "Responder com raiva e se prejudicar ainda mais", next: 8 }, { text: "Denunciar no Fala.BR e buscar apoio", next: 9 }]
+      },
+      // cena 08
+      {
+        text: "Ignorar o problema pode piorar a situação e afetar sua saúde emocional e física.",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Remodelado---Imagens---AM/Cena%2008%20-%20AM.jpg?raw=true",
+        choices: [{ text: "Voltar ao menu", next: null }]
+      },
+      // cena 09
+      {
+        text: "Responder com agressividade aumenta o conflito e prejudica seu trabalho e sua saúde.",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Remodelado---Imagens---AM/Cena%2009%20-%20AM.jpg?raw=true",
+        choices: [{ text: "Voltar ao menu", next: null }]
+      },
+      // cena 10
+      {
+        text: "Mário decidiu denunciar no Fala.BR e buscar apoio",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Remodelado---Imagens---AM/Cena%2010%20-%20AM.jpg?raw=true",
+        choices: [{ text: "Continuar", next: 10 }]
+      },
+      // cena 11
+      {
+        text: "Mário acessou a plataforma no endereço: falabr.cgu.gov.br.",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Remodelado---Imagens---AM/Cena%2011%20-%20AM.jpg?raw=true",
+        choices: [{ text: "Continuar", next: 11 }]
+      },
+      // cena 12
+      {
+        text: "Mário clicou em Manifestação de Ouvidoria no item \"serviços públicos\", Canal destinado para agentes e trabalhadores das instituições federais para registro de manifestações.",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Remodelado---Imagens---AM/Cena%2012%20-%20AM.jpg?raw=true",
+        choices: [{ text: "Continuar", next: 12 }]
+      },
+      // cena 13
+      {
+        text: "Mário descreveu provas como mensagens, fotos ou testemunhos.",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Remodelado---Imagens---AM/Cena%2013%20-%20AM.jpg?raw=true",
+        choices: [{ text: "Continuar", next: 13 }]
+      },
+      // cena 14
+      {
+        text: "Mário enviou a denúncia e guardou o protocolo para acompanhar.\nA ouvidoria analisará e encaminhará para apuração formal.",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Remodelado---Imagens---AM/Cena%2014%20-%20AM.jpg?raw=true",
+        choices: [{ text: "Continuar", next: 14 }]
+      },
+      // cena 15
+      {
+        text: "Mário recebeu apoio e a situação foi mediada:\n\"Denunciar protege minha saúde mental e ajuda a criar um ambiente mais justo.\"",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Remodelado---Imagens---AM/Cena%2015%20-%20AM.jpg?raw=true",
+        choices: [{ text: "Mensagem final", next: 15 }]
+      },
+      // cena 16
+      {
+        text: "Narrador: \"Você tem o direito de trabalhar em um ambiente respeitoso.\nNunca ignore assédio moral. Denuncie no Fala.BR e proteja seus direitos!\"",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Remodelado---Imagens---AM/Cena%2016%20-%20AM.jpg?raw=true",
+        choices: [{ text: "Voltar ao menu", next: null }]
+      }
+    ]
+  },
+  "cyberbullying": {
+    script: [
+      // cena 01
+      {
+        text: "Manuela entra no jogo animada.\n\"Hoje eu só quero jogar de boa com a galera e ver se ganharemos hoje.\"",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Imagens-CB/Cena%2001%20-%20CB.jpg?raw=true",
+        choices: [{ text: "Começar a jogar", next: 1 }]
+      },
+      // cena 02
+      {
+        text: "No chat da partida, os ataques começam e se espalham:\n\"Olha lá, A Manuela erra até o básico kkkk, Tinha que ser mulher mesmo!\"\n\"Nossa mano, que vergonha alheia. Ridícula demais, nem sei por que essa lixo ainda tá no time. Deem Ban nessa inútil!\"",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Imagens-CB/Cena%2002%20-%20CB.jpg?raw=true",
+        choices: [{ text: "Ignorar e continuar jogando", next: 2 }]
+      },
+      // cena 03
+      {
+        text: "As mensagens continuam:\n\"Vai atrapalhar em outro lugar\"\n\"Todo mundo já percebeu que ela não ajuda em nada\"",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Imagens-CB/Cena%2003%20-%20CB.jpg?raw=true",
+        choices: [{ text: "Ficar calado", next: 3 }]
+      },
+      // cena 04
+      {
+        text: "Depois da partida, criaram stickers e um vídeo editado com cortes vexatórios da jogada de Manuela, marcando o perfil dela. \n\"Os jogadores continuaram rindo e começaram a bloqueá-la e bani-la dos grupos de outros jogos.\"",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Imagens-CB/Cena%2004%20-%20CB.jpg?raw=true",
+        choices: [{ text: "Desabafar com a amiga Lara", next: 4 }]
+      },
+      // cena 05
+      {
+        text: "Manuela desabafa no chat  privado com sua amiga Lara:\n\"Mano, tá ficando chato. Toda vez que eu entro, tem zoeira, print, indireta... já tão me deixando de fora até do grupo.\"",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Imagens-CB/Cena%2005%20-%20CB.jpg?raw=true",
+        choices: [{ text: "Ouvir o conselho de Lara", next: 5 }]
+      },
+      // cena 06
+      {
+        text: "Lara responde:\n\"Isso é cyberbullying. Não é brincadeira quando vira humilhação, exposição e exclusão repetida. Isso mexe muito com a pessoa.\"",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Imagens-CB/Cena%2006%20-%20CB.jpg?raw=true",
+        choices: [{ text: "Avaliar opções", next: 6 }]
+      },
+      // cena 07
+      {
+        text: "Manuela pensa:\n\"Eu não quero piorar tudo, mas também não dá pra fingir que tá tudo bem.\"\n\"O que eu faço agora?\"",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Imagens-CB/Cena%2007%20-%20CB.jpg?raw=true",
+        choices: [{ text: "Ignorar e deixar o grupo", next: 7 }, { text: "Responder no impulso", next: 8 }, { text: "Denunciar e pedir ajuda", next: 9 }]
+      },
+      // cena 08
+      {
+        text: "Manuela sai do grupo e para de jogar com eles por um tempo, mas continua se sentindo mal e isolada.",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Imagens-CB/Cena%2008%20-%20CB.jpg?raw=true",
+        choices: [{ text: "Voltar ao menu", next: null }]
+      },
+      // cena 09
+      {
+        text: "Lara alerta:\n\"Responder no calor do momento pode virar mais print, mais deboche e mais ataque. Melhor se proteger e buscar ajuda.\"",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Imagens-CB/Cena%2009%20-%20CB.jpg?raw=true",
+        choices: [{ text: "Voltar ao menu", next: null }]
+      },
+      // cena 10
+      {
+        text: "Manuela decide denunciar as mensagens e guarda os prints.\nDepois, conversar com pessoas próximas para não lidar com isso sozinha.",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Imagens-CB/Cena%2010%20-%20CB.jpg?raw=true",
+        choices: [{ text: "Continuar", next: 10 }]
+      },
+      // cena 11
+      {
+        text: "Com apoio, Manuela começa a se sentir mais segura:\n\"Falar sobre isso foi difícil, mas foi o certo. Eu não precisava passar por isso sozinha.\"",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Imagens-CB/Cena%2011%20-%20CB.jpg?raw=true",
+        choices: [{ text: "Mensagem final", next: 11 }]
+      },
+      // cena 12
+      {
+        text: "Narrador: \"Cyberbullying não é brincadeira. Salve as provas, peça apoio e use os canais de denúncia das instituições e das plataformas. Você merece respeito também no ambiente Virtual.\"",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Imagens-CB/Cena%2012%20-%20CB.jpg?raw=true",
+        choices: [{ text: "Voltar ao menu", next: null }]
+      }
+    ]
+  },
+  "sexual": {
+    script: [
+      // cena 01
+      {
+        text: "Luiza chega ao trabalho e se prepara para uma reunião com a equipe.\n\"Hoje eu preciso mostrar meu relatório e seguir com as próximas etapas do projeto.\"",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Imagens-AS/Cena%2001%20-%20AS.jpg?raw=true",
+        choices: [{ text: "Continuar", next: 1 }]
+      },
+      // cena 02
+      {
+        text: "Durante a conversa, o gestor faz um comentário fora de contexto:\n\"Luiza, você chama bastante atenção... devia vir mais vezes assim pra reunião.\"",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Imagens-AS/Cena%2002%20-%20AS.jpg?raw=true",
+        choices: [{ text: "Tentar ignorar", next: 2 }]
+      },
+      // cena 03
+      {
+        text: "Mais tarde, ele continua:\n\"Se você topar sair comigo, eu posso facilitar algumas coisas pra você aqui no setor.\"\nLuiza percebe que a abordagem passou do limite.",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Imagens-AS/Cena%2003%20-%20AS.jpg?raw=true",
+        choices: [{ text: "Ficar sem reação", next: 3 }]
+      },
+      // cena 04
+      {
+        text: "Luiza se sente desconfortável e começa a evitar ficar sozinha com ele.\n\"Eu não estou exagerando... isso não parece normal.\"",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Imagens-AS/Cena%2004%20-%20AS.jpg?raw=true",
+        choices: [{ text: "Procurar apoio", next: 4 }]
+      },
+      // cena 05
+      {
+        text: "Ela conversa com a colega Paula:\n\"Ele faz comentários sobre meu corpo, tenta me chamar pra sair e ainda fala como se isso pudesse me ajudar no trabalho.\"",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Imagens-AS/Cena%2005%20-%20AS.jpg?raw=true",
+        choices: [{ text: "Ouvir a resposta de Paula", next: 5 }]
+      },
+      // cena 06
+      {
+        text: "Paula responde:\n\"Isso é assédio sexual. Quando alguém usa a posição que tem pra pressionar, insinuar ou trocar vantagem por favores sexuais, isso é grave.\"",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Imagens-AS/Cena%2006%20-%20AS.jpg?raw=true",
+        choices: [{ text: "Pensar no que fazer", next: 6 }]
+      },
+      // cena 07
+      {
+        text: "Luiza pensa:\n\"Eu preciso me proteger e guardar o que aconteceu. Não quero lidar com isso sozinha.\"\nO que ela deve fazer?",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Imagens-AS/Cena%2007%20-%20AS.jpg?raw=true",
+        choices: [{ text: "Ignorar para evitar conflito", next: 7 }, { text: "Confrontar de forma impulsiva", next: 8 }, { text: "Registrar a denúncia e buscar apoio", next: 9 }]
+      },
+      // cena 08
+      {
+        text: "Ignorar a situação pode permitir que o comportamento continue e aumente o desconforto no trabalho.",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Imagens-AS/Cena%2008%20-%20AS.jpg?raw=true",
+        choices: [{ text: "Voltar ao menu", next: null }]
+      },
+      // cena 09
+      {
+        text: "Responder no impulso pode piorar a situação e dificultar a apuração depois.",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Imagens-AS/Cena%2009%20-%20AS.jpg?raw=true",
+        choices: [{ text: "Voltar ao menu", next: null }]
+      },
+      // cena 10
+      {
+        text: "Luiza salva mensagens, anota datas e procura a ouvidoria.\nEla decide registrar a denúncia e pedir orientação formal no Fala.br.",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Imagens-AS/Cena%2010%20-%20AS.jpg?raw=true",
+        choices: [{ text: "Continuar", next: 11 }]
+      },
+      // cena 11
+      {
+        text: "Luiza acessou a plataforma no endereço: falabr.cgu.gov.br.",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Imagens-AS/Cena%2011%20-%20AS.jpg?raw=true",
+        choices: [{ text: "Continuar", next: 12 }]
+      },
+      // cena 12
+      {
+        text: "Luiza clicou em Manifestação de Ouvidoria no item \"serviços públicos\", Canal destinado para agentes e trabalhadores das instituições federais para registro de manifestações.",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Imagens-AS/Cena%2012%20-%20AS.jpg?raw=true",
+        choices: [{ text: "Continuar", next: 13 }]
+      },
+      // cena 13
+      {
+        text: "Luiza Descreveu provas como mensagens, fotos ou testemunhos.",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Imagens-AS/Cena%2013%20-%20AS.jpg?raw=true",
+        choices: [{ text: "Continuar", next: 14 }]
+      },
+      // cena 14
+      {
+        text: "Luiza enviou a denúncia e guardou o protocolo para acompanhar.\nA ouvidoria analisará e encaminhará para apuração formal.",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Imagens-AS/Cena%2014%20-%20AS.jpg?raw=true",
+        choices: [{ text: "Continuar", next: 15 }]
+      },
+      // cena 15
+      {
+        text: "Com apoio, Luiza se sente mais segura.\n\"Denunciar foi difícil, mas eu precisava me proteger e interromper isso.\"",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Imagens-AS/Cena%2015%20-%20AS.jpg?raw=true",
+        choices: [{ text: "Continuar", next: 15 }]
+      },
+      // cena 16
+      {
+        text: "Narrador: \"Assédio sexual não é elogio nem brincadeira, é crime!. Se houver constrangimento com conotação sexual, procure apoio, guarde provas e denuncie pelos canais adequados, como a ouvidoria e o Fala.BR.\"",
+        image: "https://github.com/Macaioyasmin/gameficacao-CE/blob/Imagens-AS/Cena%2016%20-%20AS.jpg?raw=true",
+        choices: [{ text: "Voltar ao menu", next: null }]
+      }
+    ]
+  }
+};
+
+let currentScenario, step = 0;
+
+function showStep() {
+  const s = currentScenario.script[step];
+  if (!s) return back();
+  text.textContent = s.text;
+  bg.style.opacity = 0;
+  setTimeout(() => {
+    bg.style.backgroundImage = `url(${s.image})`;
+    bg.style.opacity = 1;
+  }, 300);
+  choices.innerHTML = '';
+  s.choices.forEach(c => {
+    const b = document.createElement('button');
+    b.className = 'choiceBtn';
+    b.textContent = c.text;
+    b.onclick = () => c.next === null ? back() : (step = c.next, showStep());
+    choices.appendChild(b);
+  });
+}
+
+function back() {
+  novel.style.display = 'none';
+  menu.style.display = 'block';
+  backBtn.style.display = 'none';
+}
+
+// CORREÇÃO: antes trocava a visibilidade errada (mostrava a intro de novo
+// em vez do menu). Agora esconde a intro e revela o menu de cenários.
+document.getElementById('startButton').onclick = () => {
+  intro.style.display = 'none';
+  menu.style.display = 'block';
+  novel.style.display = 'none';
+};
+
+document.querySelectorAll('.card').forEach(c => {
+  c.onclick = () => {
+    currentScenario = scenarios[c.dataset.scenario];
+    step = 0;
+    menu.style.display = 'none';
+    novel.style.display = 'flex';
+    backBtn.style.display = 'inline-block';
+    showStep();
+  };
+});
+
+/* ==================== MODAL DE INFORMAÇÕES ====================
+   CORREÇÃO: este bloco estava dentro do forEach dos cards, sendo
+   registrado repetidamente (uma vez por card). Movido para fora,
+   registrado uma única vez. */
+const infoTexts = {
+  "sobre": "\n    <h2 style=\"color:#F1781B;\">Sobre a Gameficação</h2>\n    <p>Esta Gameficação é uma iniciativa da Comissão de Ética da Finep para estimular a reflexão sobre respeito, assédio moral e cyberbullying em ambientes físicos e virtuais.</p>\n  ",
+  "fontes": "\n    <h2 style=\"color:#F1781B;\">Fontes</h2>\n    <ul>\n      <li><a href=\"http://www.finep.gov.br/images/a-finep/codigo-de-etica-e-conduta/Codigo_de_Etica.pdf\" target=\"_blank\">Código de Ética, Conduta e Integridade da Finep</a></li>\n      <li><a href=\"https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2023/lei/l14540.htm\" target=\"_blank\">Lei nº 14.540/2023</a></li>\n      <li><a href=\"https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2024/lei/l14811.htm\" target=\"_blank\">Lei nº 14.811/2024</a></li>\n      <li><a href=\"https://falabr.cgu.gov.br/\" target=\"_blank\">Fala.BR</a></li>\n      <li><a href=\"https://www.cyberharcelstop.be/#game\" target=\"_blank\">Projeto CyberHarcel-stop</a></li>\n    </ul>\n  ",
+  "contato": "\n    <h2 style=\"color:#F1781B;\">Contato</h2>\n    <ul>\n      <li>E-mail: etica@finep.gov.br</li>\n    </ul>\n  "
+};
+
+function openModal(type) {
+  infoModal.style.display = 'flex';
+  infoText.innerHTML = infoTexts[type] || '';
+}
+
+document.getElementById('sobreLink').onclick = (e) => {
+  e.preventDefault();
+  openModal('sobre');
+};
+document.getElementById('fontesLink').onclick = (e) => {
+  e.preventDefault();
+  openModal('fontes');
+};
+document.getElementById('contatoLink').onclick = (e) => {
+  e.preventDefault();
+  openModal('contato');
+};
+
+
+modalCloseBtn.onclick = () => (infoModal.style.display = 'none');
+infoModal.onclick = (e) => {
+  if (e.target === infoModal) infoModal.style.display = 'none';
+};
+
+backBtn.onclick = () => {
+  const sair = confirm(
+    'Deseja realmente sair deste módulo? Seu progresso nesta história será interrompido.'
+  );
+  if (sair) {
+    back();
+  }
+};
+</script>
+</body>
+</html>

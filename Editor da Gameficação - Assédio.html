@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Editor do Jogo — Comissão de Ética da Finep</title>
+<style>
+  :root{
+    --teal:#005051;
+    --teal-dark:#003932;
+    --orange:#F1781B;
+    --orange-dark:#d97704;
+    --ink:#16201F;
+    --muted:#5D6B6A;
+    --line:#D3DAD9;
+    --panel:#FFFFFF;
+    --bg:#E9EEED;
+    --warn:#B3261E;
+    --ok:#1B6B3A;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+    font-size:15px; line-height:1.5;
+  }
+  button{font:inherit}
+  input,textarea,select{font:inherit; color:inherit}
+
+  /* ---------- barra superior ---------- */
+  header.top{
+    background:var(--teal); color:#fff;
+    display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+    padding:10px 18px;
+  }
+  header.top .brand{font-weight:700; font-size:17px; margin-right:auto}
+  header.top .brand span{display:block; font-weight:400; font-size:12.5px; opacity:.8}
+  .btn{
+    border:1px solid transparent; border-radius:3px; padding:8px 14px;
+    cursor:pointer; background:#fff; color:var(--teal); font-weight:600;
+  }
+  .btn:hover{background:#EFF3F2}
+  .btn.primary{background:var(--orange); color:#fff}
+  .btn.primary:hover{background:var(--orange-dark)}
+  .btn.ghost{background:transparent; color:#fff; border-color:rgba(255,255,255,.55)}
+  .btn.ghost:hover{background:rgba(255,255,255,.12)}
+  .btn.small{padding:4px 9px; font-size:13px; font-weight:600}
+  .btn.danger{color:var(--warn); border-color:#E3C4C1; background:#fff}
+  .btn.danger:hover{background:#FCEFEE}
+  .btn:disabled{opacity:.45; cursor:not-allowed}
+  .btn:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{
+    outline:3px solid var(--orange); outline-offset:2px;
+  }
+
+  /* ---------- tela de abertura ---------- */
+  #welcome{max-width:760px; margin:60px auto; padding:0 20px}
+  #welcome .card{
+    background:var(--panel); border:1px solid var(--line); border-radius:4px; padding:34px;
+  }
+  #welcome h1{margin:0 0 6px; font-size:26px; color:var(--teal)}
+  #welcome p{margin:0 0 18px; color:var(--muted); max-width:62ch}
+  .dropzone{
+    border:2px dashed var(--line); border-radius:4px; padding:34px; text-align:center;
+    background:#F7F9F9; cursor:pointer;
+  }
+  .dropzone.hot{border-color:var(--orange); background:#FDF3E9}
+  .dropzone strong{display:block; font-size:17px; margin-bottom:4px}
+  .dropzone span{color:var(--muted); font-size:13.5px}
+  .steps{margin:22px 0 0; padding-left:20px; color:var(--muted); font-size:14px}
+  .steps li{margin-bottom:5px}
+  #restoreBar{
+    margin-top:18px; padding:12px 14px; background:#FDF3E9; border:1px solid #F0D5B4;
+    border-radius:3px; display:none; align-items:center; gap:12px; flex-wrap:wrap;
+  }
+
+  /* ---------- área de trabalho ---------- */
+  #workspace{display:none; height:calc(100% - 58px)}
+  .tabs{display:flex; gap:2px; background:var(--teal-dark); padding:0 14px}
+  .tabs button{
+    background:transparent; border:0; color:rgba(255,255,255,.72); padding:10px 16px;
+    cursor:pointer; border-bottom:3px solid transparent; font-weight:600; font-size:14px;
+  }
+  .tabs button[aria-selected="true"]{color:#fff; border-bottom-color:var(--orange)}
+  .panelwrap{height:calc(100% - 43px); overflow:auto}
+
+  .cols{display:grid; grid-template-columns:270px minmax(0,1fr) 400px; gap:14px; padding:14px; align-items:start}
+  .col{background:var(--panel); border:1px solid var(--line); border-radius:4px}
+  .col h2{
+    margin:0; font-size:13px; letter-spacing:.02em; color:var(--muted); font-weight:700;
+    padding:11px 14px; border-bottom:1px solid var(--line);
+  }
+  .col .body{padding:14px}
+
+  /* lista de cenas */
+  .storyPick{padding:12px 14px; border-bottom:1px solid var(--line)}
+  .storyPick select{width:100%; padding:7px 8px; border:1px solid var(--line); border-radius:3px; background:#fff}
+  ol.scenes{list-style:none; margin:0; padding:6px; max-height:56vh; overflow:auto}
+  ol.scenes li{margin-bottom:3px}
+  ol.scenes button{
+    width:100%; text-align:left; background:transparent; border:0; border-radius:3px;
+    padding:8px 10px; cursor:pointer; display:flex; gap:9px; align-items:flex-start;
+  }
+  ol.scenes button:hover{background:#EFF3F2}
+  ol.scenes button[aria-current="true"]{background:var(--teal); color:#fff}
+  ol.scenes .num{
+    flex:0 0 26px; font-variant-numeric:tabular-nums; font-weight:700; font-size:12.5px;
+    color:var(--orange); padding-top:1px;
+  }
+  ol.scenes button[aria-current="true"] .num{color:#FFC48A}
+  ol.scenes .txt{
+    font-size:13px; line-height:1.35; overflow:hidden; display:-webkit-box;
+    -webkit-line-clamp:2; -webkit-box-orient:vertical;
+  }
+  .listActions{padding:10px 12px; border-top:1px solid var(--line); display:flex; gap:6px; flex-wrap:wrap}
+
+  /* formulário */
+  .field{margin-bottom:18px}
+  .field label{display:block; font-weight:700; font-size:13.5px; margin-bottom:5px}
+  .field .hint{font-size:12.5px; color:var(--muted); margin:0 0 6px}
+  .field textarea, .field input[type=text], .field input[type=url]{
+    width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:3px; background:#fff;
+  }
+  .field textarea{min-height:130px; resize:vertical; line-height:1.55}
+  .imgRow{display:flex; gap:12px; align-items:flex-start}
+  .imgRow .thumb{
+    flex:0 0 140px; height:86px; border:1px solid var(--line); border-radius:3px;
+    background:#F1F4F4 center/cover no-repeat; display:flex; align-items:center;
+    justify-content:center; font-size:12px; color:var(--muted); text-align:center; padding:6px;
+  }
+  .choice{
+    border:1px solid var(--line); border-left:4px solid var(--orange); border-radius:3px;
+    padding:12px; margin-bottom:10px; background:#FCFDFD;
+  }
+  .choice .row{display:flex; gap:10px; flex-wrap:wrap}
+  .choice .row > div{flex:1 1 200px}
+  .choice select, .choice input{width:100%; padding:8px 9px; border:1px solid var(--line); border-radius:3px; background:#fff}
+  .choice .rmv{margin-top:9px}
+  .sceneTitle{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:4px}
+  .sceneTitle h3{margin:0; font-size:19px; color:var(--teal)}
+  .sceneTitle .of{color:var(--muted); font-size:13px}
+
+  /* pré-visualização */
+  .preview{padding:14px}
+  .pvFrame{border:1px solid var(--line); border-radius:3px; overflow:hidden; background:#000}
+  .pvImage{height:200px; background:#25302F center/cover no-repeat; display:flex;
+    align-items:center; justify-content:center; color:#9AA8A7; font-size:13px; text-align:center; padding:12px}
+  .pvText{background:var(--teal); color:#fff; padding:14px}
+  .pvText .narr{white-space:pre-wrap; font-size:13.5px; margin-bottom:12px}
+  .pvText .btns{display:flex; flex-direction:column; gap:7px}
+  .pvText .btns button{
+    background:var(--orange); color:#fff; border:0; border-radius:3px; padding:9px 12px;
+    cursor:pointer; text-align:left; font-size:13.5px;
+  }
+  .pvText .btns button:hover{background:var(--orange-dark)}
+  .pvNote{font-size:12.5px; color:var(--muted); margin-top:10px}
+
+  .alert{
+    border-radius:3px; padding:10px 12px; font-size:13.5px; margin-bottom:14px;
+    border:1px solid #F0D5B4; background:#FDF3E9;
+  }
+  .alert.bad{border-color:#E3C4C1; background:#FCEFEE; color:#7A1F19}
+  .alert.good{border-color:#BFD9C8; background:#EDF6F0; color:#14522F}
+
+  /* telas simples (intro / janelas) */
+  .simple{max-width:1040px; margin:0 auto; padding:14px}
+  .simple .col{margin-bottom:14px}
+  .infoGrid{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:14px}
+  .infoGrid textarea{min-height:210px; font-family:Consolas,"Courier New",monospace; font-size:13px}
+  .infoPv{border:1px solid var(--line); border-radius:3px; padding:14px; background:#FDFDFD; overflow:auto; max-height:320px}
+  .infoPv h2{color:var(--orange); font-size:18px; margin-top:0}
+  .infoPv ul{padding-left:20px}
+
+  /* rodapé fixo de status */
+  #status{
+    position:fixed; right:16px; bottom:16px; background:var(--teal); color:#fff;
+    padding:10px 15px; border-radius:3px; font-size:13.5px; opacity:0;
+    transition:opacity .25s; pointer-events:none; max-width:70vw;
+  }
+  #status.show{opacity:1}
+
+  @media (max-width:1180px){
+    .cols{grid-template-columns:230px minmax(0,1fr)}
+    .col.previewCol{grid-column:1 / -1}
+    .infoGrid{grid-template-columns:minmax(0,1fr)}
+  }
+  @media (max-width:760px){
+    .cols{grid-template-columns:minmax(0,1fr)}
+    header.top{gap:10px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none !important}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">Editor do Jogo<span>Comissão de Ética da Finep</span></div>
+  <button class="btn ghost" id="openAnother" hidden>Abrir outro arquivo</button>
+  <button class="btn ghost" id="testGame" hidden>Testar o jogo</button>
+  <button class="btn primary" id="saveGame" hidden>Salvar arquivo do jogo</button>
+</header>
+
+<!-- ====================== ABERTURA ====================== -->
+<section id="welcome">
+  <div class="card">
+    <h1>Edite o jogo sem mexer no código</h1>
+    <p>Abra o arquivo do jogo aqui. As falas, as imagens e os botões de escolha aparecem em campos de texto comuns. Quando terminar, você salva um arquivo novo, pronto para publicar.</p>
+
+    <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Escolher o arquivo do jogo">
+      <strong>Escolher o arquivo do jogo</strong>
+      <span>Clique aqui ou arraste o arquivo .Rhtml (ou .html) para esta área</span>
+    </div>
+    <input type="file" id="fileInput" accept=".rhtml,.Rhtml,.html,.htm" hidden>
+
+    <div id="restoreBar">
+      <span id="restoreMsg"></span>
+      <button class="btn small" id="restoreBtn">Continuar de onde parei</button>
+      <button class="btn small" id="discardBtn">Descartar</button>
+    </div>
+
+    <ol class="steps">
+      <li>Abra o arquivo do jogo (por exemplo, jogo-etica-finep-v21.Rhtml).</li>
+      <li>Edite os textos, as imagens e as escolhas nas abas acima.</li>
+      <li>Clique em “Testar o jogo” para ver o resultado de verdade.</li>
+      <li>Clique em “Salvar arquivo do jogo” para baixar a versão nova.</li>
+    </ol>
+    <p class="pvNote" style="margin-top:14px">O arquivo original nunca é alterado. O editor sempre gera um arquivo novo, com “-editado” no nome.</p>
+  </div>
+</section>
+
+<!-- ====================== EDITOR ====================== -->
+<main id="workspace">
+  <nav class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-tab="cenas">Cenas da história</button>
+    <button role="tab" aria-selected="false" data-tab="inicio">Tela inicial</button>
+    <button role="tab" aria-selected="false" data-tab="janelas">Sobre, Fontes e Contato</button>
+  </nav>
+
+  <div class="panelwrap">
+
+    <!-- ---------- ABA: CENAS ---------- -->
+    <div data-panel="cenas">
+    <div id="issueBar" style="padding:14px 14px 0; display:none"></div>
+    <div class="cols">
+      <div class="col">
+        <h2>Histórias e cenas</h2>
+        <div class="storyPick">
+          <label for="storySelect" style="font-size:13px;font-weight:700;display:block;margin-bottom:5px">História</label>
+          <select id="storySelect"></select>
+          <div style="display:flex; gap:6px; margin-top:8px; flex-wrap:wrap">
+            <button class="btn small" id="addStory">Nova história</button>
+            <button class="btn small danger" id="delStory">Excluir história</button>
+          </div>
+        </div>
+        <ol class="scenes" id="sceneList"></ol>
+        <div class="listActions">
+          <button class="btn small" id="addScene">Nova cena</button>
+          <button class="btn small" id="moveUp">Subir</button>
+          <button class="btn small" id="moveDown">Descer</button>
+          <button class="btn small danger" id="delScene">Excluir cena</button>
+        </div>
+      </div>
+
+      <div class="col">
+        <h2>Conteúdo da cena</h2>
+        <div class="body" id="sceneForm"></div>
+      </div>
+
+      <div class="col previewCol">
+        <h2>Como fica na tela</h2>
+        <div class="preview" id="scenePreview"></div>
+      </div>
+    </div>
+    </div>
+
+    <!-- ---------- ABA: TELA INICIAL ---------- -->
+    <div class="simple" data-panel="inicio" hidden>
+      <div class="col">
+        <h2>Cabeçalho do site</h2>
+        <div class="body" id="headerForm"></div>
+      </div>
+      <div class="col">
+        <h2>Tela de boas-vindas</h2>
+        <div class="body" id="introForm"></div>
+      </div>
+      <div class="col">
+        <h2>Nomes dos cartões de escolha</h2>
+        <div class="body" id="cardsForm"></div>
+      </div>
+    </div>
+
+    <!-- ---------- ABA: JANELAS ---------- -->
+    <div class="simple" data-panel="janelas" hidden>
+      <div class="col">
+        <h2>Janelas do menu</h2>
+        <div class="body" id="infoForm"></div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<div id="status" role="status" aria-live="polite"></div>
+
+<script>
+/* =======================================================================
+   Editor do Jogo — Comissão de Ética da Finep
+   Lê o arquivo do jogo, mostra o conteúdo em campos de texto e grava um
+   arquivo novo mantendo intactos o visual (CSS) e a programação (funções).
+   ======================================================================= */
+
+const STORAGE_KEY = 'editor-jogo-etica-finep/rascunho';
+
+const state = {
+  source: '',        // conteúdo original do arquivo
+  fileName: '',
+  scenarios: null,   // objeto com as histórias
+  infoTexts: null,   // textos das janelas Sobre/Fontes/Contato
+  page: null,        // textos soltos da página (intro, cartões, cabeçalho)
+  storyKey: '',
+  sceneIdx: 0,
+  issues: [],
+  orphans: [],
+  loaded: false
+};
+
+let uidCounter = 0;
+const uid = () => 'c' + (++uidCounter);
+
+/* ---------------- utilidades de interface ---------------- */
+const $ = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+function toast(msg, ms = 2600){
+  const el = $('#status');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => el.classList.remove('show'), ms);
+}
+
+function esc(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ---------------- leitura do arquivo do jogo ---------------- */
+
+// Encontra o fim de um bloco { ... } ignorando textos e comentários.
+function findBlockEnd(src, start){
+  let depth = 0, i = start;
+  while (i < src.length){
+    const ch = src[i], nx = src[i+1];
+    if (ch === '/' && nx === '/'){ while (i < src.length && src[i] !== '\n') i++; continue; }
+    if (ch === '/' && nx === '*'){ const e = src.indexOf('*/', i+2); if (e < 0) return -1; i = e + 2; continue; }
+    if (ch === '"' || ch === "'" || ch === '`'){
+      const q = ch; i++;
+      while (i < src.length){
+        if (src[i] === '\\'){ i += 2; continue; }
+        if (src[i] === q){ i++; break; }
+        i++;
+      }
+      continue;
+    }
+    if (ch === '{') depth++;
+    else if (ch === '}'){ depth--; if (depth === 0) return i; }
+    i++;
+  }
+  return -1;
+}
+
+// Localiza "const NOME = { ... }" e devolve posições + objeto já interpretado.
+function readObject(src, name){
+  const re = new RegExp('const\\s+' + name + '\\s*=\\s*', 'm');
+  const m = re.exec(src);
+  if (!m) return null;
+  const open = src.indexOf('{', m.index + m[0].length - 1);
+  if (open < 0) return null;
+  const close = findBlockEnd(src, open);
+  if (close < 0) return null;
+  const literal = src.slice(open, close + 1);
+  let value;
+  try {
+    value = Function('"use strict"; return (' + literal + ');')();
+  } catch (err){
+    throw new Error('Não foi possível ler o bloco "' + name + '" do arquivo. ' + err.message);
+  }
+  return { open, close, value };
+}
+
+// Textos soltos da página, cada um com o trecho exato que será trocado depois.
+const PAGE_FIELDS = [
+  { key:'headerTitle', label:'Título no topo da página',
+    re:/(<strong style="font-size:\s*22px;">)([\s\S]*?)(<\/strong>)/ },
+  { key:'linkSobre',   label:'Nome do link “Sobre”',   re:/(<a href="#" id="sobreLink">)([\s\S]*?)(<\/a>)/ },
+  { key:'linkFontes',  label:'Nome do link “Fontes”',  re:/(<a href="#" id="fontesLink">)([\s\S]*?)(<\/a>)/ },
+  { key:'linkContato', label:'Nome do link “Contato”', re:/(<a href="#" id="contatoLink">)([\s\S]*?)(<\/a>)/ },
+  { key:'introTitle',  label:'Título da tela de boas-vindas',
+    re:/(<div class="container" id="introContainer">[\s\S]*?<h1>)([\s\S]*?)(<\/h1>)/ },
+  { key:'introText',   label:'Texto de apresentação',
+    re:/(<div class="container" id="introContainer">[\s\S]*?<p>)([\s\S]*?)(<\/p>)/ },
+  { key:'startButton', label:'Texto do botão que começa o jogo',
+    re:/(<button class="button-start" id="startButton">)([\s\S]*?)(<\/button>)/ },
+  { key:'menuTitle',   label:'Frase acima dos cartões',
+    re:/(<div class="container" id="mainMenu"[^>]*>\s*<h2>)([\s\S]*?)(<\/h2>)/ }
+];
+
+function readPageFields(src){
+  const out = {};
+  PAGE_FIELDS.forEach(f => { const m = f.re.exec(src); out[f.key] = m ? m[2].trim() : null; });
+  out.cards = {};
+  const cardRe = /<div class="card" data-scenario="([^"]+)">([\s\S]*?)<\/div>/g;
+  let m;
+  while ((m = cardRe.exec(src)) !== null) out.cards[m[1]] = m[2].trim();
+  return out;
+}
+
+function loadSource(src, fileName){
+  const scen = readObject(src, 'scenarios');
+  if (!scen) throw new Error('Este arquivo não parece ser o jogo: o bloco das histórias (scenarios) não foi encontrado.');
+  const info = readObject(src, 'infoTexts');
+
+  // Cada cena recebe uma identidade própria, e cada escolha passa a apontar
+  // para essa identidade. Assim, ao mover ou excluir cenas, os caminhos da
+  // história continuam corretos sozinhos.
+  const scenarios = scen.value;
+  const issues = [];
+  Object.keys(scenarios).forEach(key => {
+    const script = scenarios[key].script || [];
+    script.forEach(sc => { sc._id = uid(); });
+    script.forEach((sc, i) => {
+      (sc.choices || []).forEach(c => {
+        const vazio = (c.next === null || c.next === undefined);
+        if (!vazio && !script[c.next]){
+          // o botão aponta para uma cena que não existe: o jogo devolve o
+          // jogador ao menu neste ponto, o que quase sempre é um engano
+          issues.push({ story:key, sceneIdx:i, choiceText:c.text, badNext:c.next });
+        }
+        c._to = (vazio || !script[c.next]) ? null : script[c.next]._id;
+      });
+    });
+  });
+  state.issues = issues;
+
+  // Cenas que nenhum caminho alcança a partir da primeira: ficam escritas no
+  // arquivo, mas o jogador nunca as vê.
+  const orphans = [];
+  Object.keys(scenarios).forEach(key => {
+    const script = scenarios[key].script || [];
+    if (!script.length) return;
+    const reach = new Set([script[0]._id]);
+    let mudou = true;
+    while (mudou){
+      mudou = false;
+      script.forEach(sc => {
+        if (!reach.has(sc._id)) return;
+        (sc.choices || []).forEach(c => {
+          if (c._to != null && !reach.has(c._to)){ reach.add(c._to); mudou = true; }
+        });
+      });
+    }
+    script.forEach((sc, i) => { if (!reach.has(sc._id)) orphans.push({ story:key, sceneIdx:i, text:sc.text }); });
+  });
+  state.orphans = orphans;
+
+  state.source = src;
+  state.fileName = fileName || 'jogo.Rhtml';
+  state.scenarios = scenarios;
+  state.infoTexts = info ? info.value : null;
+  state.page = readPageFields(src);
+  state.storyKey = Object.keys(scenarios)[0] || '';
+  state.sceneIdx = 0;
+  state.loaded = true;
+}
+
+/* ---------------- gravação do arquivo ---------------- */
+
+function jsStr(s){
+  return JSON.stringify(String(s == null ? '' : s)).replace(/<\/script/gi, '<\\/script');
+}
+
+function serializeScenarios(scenarios, cardNames){
+  const keys = Object.keys(scenarios);
+  let out = '{\n';
+  keys.forEach((key, ki) => {
+    const script = scenarios[key].script || [];
+    const idIndex = new Map(script.map((sc, i) => [sc._id, i]));
+    out += '  ' + jsStr(key) + ': {\n    script: [\n';
+    script.forEach((sc, i) => {
+      const n = String(i + 1).padStart(2, '0');
+      out += '      // cena ' + n + '\n';
+      out += '      {\n';
+      out += '        text: ' + jsStr(sc.text) + ',\n';
+      out += '        image: ' + jsStr(sc.image) + ',\n';
+      const ch = (sc.choices || []).map(c => {
+        const target = (c._to != null && idIndex.has(c._to)) ? idIndex.get(c._to) : null;
+        return '{ text: ' + jsStr(c.text) + ', next: ' + (target === null ? 'null' : target) + ' }';
+      });
+      out += '        choices: [' + ch.join(', ') + ']\n';
+      out += '      }' + (i < script.length - 1 ? ',' : '') + '\n';
+    });
+    out += '    ]\n  }' + (ki < keys.length - 1 ? ',' : '') + '\n';
+  });
+  out += '}';
+  return out;
+}
+
+function serializeInfoTexts(info){
+  const keys = Object.keys(info);
+  let out = '{\n';
+  keys.forEach((k, i) => {
+    out += '  ' + jsStr(k) + ': ' + jsStr(info[k]) + (i < keys.length - 1 ? ',' : '') + '\n';
+  });
+  out += '}';
+  return out;
+}
+
+// Acha o </div> que fecha a div aberta em openTagEnd (conta as div internas).
+function findDivEnd(src, openTagEnd){
+  const re = /<div\b|<\/div>/gi;
+  re.lastIndex = openTagEnd;
+  let depth = 1, m;
+  while ((m = re.exec(src)) !== null){
+    if (m[0].toLowerCase() === '</div>'){
+      depth--;
+      if (depth === 0) return { start: m.index, end: re.lastIndex };
+    } else depth++;
+  }
+  return null;
+}
+
+function replaceCardsBlock(src){
+  const marca = '<div class="cards">';
+  const i = src.indexOf(marca);
+  if (i < 0) return src;
+  const abre = i + marca.length;
+  const fecha = findDivEnd(src, abre);
+  if (!fecha) return src;
+  // mantém a ordem original dos cartões e acrescenta as histórias novas no fim
+  const ordem = Object.keys(state.page.cards).filter(k => state.scenarios[k]);
+  Object.keys(state.scenarios).forEach(k => { if (!ordem.includes(k)) ordem.push(k); });
+  const linhas = ordem.map(k =>
+    '\n    <div class="card" data-scenario="' + k + '">' + (state.page.cards[k] || k) + '</div>'
+  ).join('');
+  return src.slice(0, abre) + linhas + '\n  ' + src.slice(fecha.start);
+}
+
+function buildFile(){
+  let src = state.source;
+
+  // 1) textos soltos da página
+  PAGE_FIELDS.forEach(f => {
+    const val = state.page[f.key];
+    if (val == null) return;
+    src = src.replace(f.re, (full, a, mid, b) => a + val + b);
+  });
+
+  // 2) cartões do menu (inclui histórias criadas ou excluídas no editor)
+  src = replaceCardsBlock(src);
+
+  // 3) bloco das histórias
+  const scen = readObject(src, 'scenarios');
+  if (scen){
+    src = src.slice(0, scen.open) + serializeScenarios(state.scenarios) + src.slice(scen.close + 1);
+  }
+
+  // 4) bloco das janelas de informação
+  if (state.infoTexts){
+    const info = readObject(src, 'infoTexts');
+    if (info){
+      src = src.slice(0, info.open) + serializeInfoTexts(state.infoTexts) + src.slice(info.close + 1);
+    }
+  }
+  return src;
+}
+
+function outputName(){
+  const base = state.fileName.replace(/\.(rhtml|html|htm)$/i, '');
+  return base + '-editado.Rhtml';
+}
+
+function downloadFile(){
+  const blob = new Blob([buildFile()], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = outputName();
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+  toast('Arquivo salvo como ' + outputName());
+}
+
+function testGame(){
+  const blob = new Blob([buildFile()], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const win = window.open(url, '_blank');
+  if (!win) toast('O navegador bloqueou a nova aba. Libere os pop-ups deste editor e tente de novo.', 5200);
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+
+/* ---------------- rascunho automático ---------------- */
+function saveDraft(){
+  if (!state.loaded) return;
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      at: Date.now(),
+      fileName: state.fileName,
+      source: state.source,
+      scenarios: state.scenarios,
+      infoTexts: state.infoTexts,
+      page: state.page
+    }));
+  } catch (e){ /* sem espaço ou sem permissão: o editor segue funcionando */ }
+}
+
+function loadDraftInfo(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (e){ return null; }
+}
+
+/* ---------------- telas ---------------- */
+function showWorkspace(){
+  $('#welcome').hidden = true;
+  $('#welcome').style.display = 'none';
+  $('#workspace').style.display = 'block';
+  $('#saveGame').hidden = false;
+  $('#testGame').hidden = false;
+  $('#openAnother').hidden = false;
+  renderAll();
+}
+
+function renderIssues(){
+  const bar = $('#issueBar');
+  const temQuebra = state.issues && state.issues.length;
+  const temOrfa = state.orphans && state.orphans.length;
+  if (!temQuebra && !temOrfa){ bar.style.display = 'none'; bar.innerHTML = ''; return; }
+  bar.style.display = 'block';
+  bar.innerHTML = (!temQuebra ? '' : `
+    <div class="alert bad">
+      <strong>Encontrei ${state.issues.length} botão(ões) apontando para uma cena que não existe.</strong>
+      No jogo, quem clica nesse botão é devolvido ao menu e não vê o restante da história.
+      <ul style="margin:8px 0 10px; padding-left:20px">
+        ${state.issues.map(it => `<li>História “${esc(storyLabel(it.story))}”, cena ${String(it.sceneIdx + 1).padStart(2, '0')}, botão “${esc(it.choiceText)}”.</li>`).join('')}
+      </ul>
+      <button class="btn small" id="fixIssues">Apontar para a cena seguinte</button>
+      <button class="btn small" id="ignoreIssues">Deixar como está</button>
+    </div>`) + (!temOrfa ? '' : `
+    <div class="alert">
+      <strong>${state.orphans.length} cena(s) não aparecem para o jogador.</strong>
+      Elas estão escritas no arquivo, mas nenhum botão leva até elas. Se quiser exibi-las,
+      ajuste o campo “Leva para” de algum botão da cena anterior.
+      <ul style="margin:8px 0 10px; padding-left:20px">
+        ${state.orphans.map(o => `<li><button type="button" class="btn small" data-goto="${esc(o.story)}|${o.sceneIdx}">História “${esc(storyLabel(o.story))}”, cena ${String(o.sceneIdx + 1).padStart(2, '0')}</button></li>`).join('')}
+      </ul>
+      <button class="btn small" id="ignoreOrphans">Deixar como está</button>
+    </div>`);
+
+  $$('[data-goto]', bar).forEach(btn => {
+    btn.addEventListener('click', () => {
+      const [story, idx] = btn.dataset.goto.split('|');
+      state.storyKey = story;
+      state.sceneIdx = Number(idx);
+      renderStorySelect(); renderSceneList(); renderSceneForm();
+    });
+  });
+  const ignOrf = $('#ignoreOrphans');
+  if (ignOrf) ignOrf.addEventListener('click', () => { state.orphans = []; renderIssues(); });
+  if (!temQuebra) return;
+
+  $('#fixIssues').addEventListener('click', () => {
+    let n = 0;
+    state.issues.forEach(it => {
+      const script = state.scenarios[it.story].script;
+      const sc = script[it.sceneIdx];
+      const prox = script[it.sceneIdx + 1];
+      if (!sc || !prox) return;
+      (sc.choices || []).forEach(c => { if (c.text === it.choiceText && c._to == null){ c._to = prox._id; n++; } });
+    });
+    state.issues = [];
+    renderIssues(); renderSceneForm(); saveDraft();
+    toast(n + ' botão(ões) corrigido(s). Teste o jogo para conferir.', 4200);
+  });
+  $('#ignoreIssues').addEventListener('click', () => {
+    state.issues = [];
+    renderIssues();
+  });
+}
+
+function renderAll(){
+  renderIssues();
+  renderStorySelect();
+  renderSceneList();
+  renderSceneForm();
+  renderPageForms();
+  renderInfoForm();
+}
+
+/* ---------------- aba: cenas ---------------- */
+function currentScript(){
+  const st = state.scenarios[state.storyKey];
+  return (st && st.script) ? st.script : [];
+}
+
+function storyLabel(key){
+  return (state.page.cards && state.page.cards[key]) ? state.page.cards[key] : key;
+}
+
+function renderStorySelect(){
+  const sel = $('#storySelect');
+  sel.innerHTML = Object.keys(state.scenarios)
+    .map(k => `<option value="${esc(k)}"${k === state.storyKey ? ' selected' : ''}>${esc(storyLabel(k))}</option>`)
+    .join('');
+}
+
+function firstLine(t){
+  const s = String(t || '').replace(/\s+/g, ' ').trim();
+  return s.length > 64 ? s.slice(0, 64) + '…' : (s || '(cena sem texto)');
+}
+
+function renderSceneList(){
+  const script = currentScript();
+  if (state.sceneIdx >= script.length) state.sceneIdx = Math.max(0, script.length - 1);
+  $('#sceneList').innerHTML = script.map((sc, i) => `
+    <li>
+      <button type="button" data-idx="${i}" aria-current="${i === state.sceneIdx}">
+        <span class="num">${String(i + 1).padStart(2, '0')}</span>
+        <span class="txt">${esc(firstLine(sc.text))}</span>
+      </button>
+    </li>`).join('');
+  $('#moveUp').disabled = state.sceneIdx <= 0;
+  $('#moveDown').disabled = state.sceneIdx >= script.length - 1;
+  $('#delScene').disabled = script.length <= 1;
+}
+
+function renderSceneForm(){
+  const script = currentScript();
+  const sc = script[state.sceneIdx];
+  const box = $('#sceneForm');
+  if (!sc){ box.innerHTML = '<p>Esta história ainda não tem cenas. Use “Nova cena”.</p>'; return; }
+
+  const options = (selectedId) => {
+    let html = script.map((s, i) =>
+      `<option value="${s._id}"${s._id === selectedId ? ' selected' : ''}>Cena ${String(i + 1).padStart(2, '0')} — ${esc(firstLine(s.text)).slice(0, 44)}</option>`
+    ).join('');
+    html += `<option value="__menu__"${selectedId == null ? ' selected' : ''}>Voltar ao menu de histórias</option>`;
+    return html;
+  };
+
+  box.innerHTML = `
+    <div class="sceneTitle">
+      <h3>Cena ${String(state.sceneIdx + 1).padStart(2, '0')}</h3>
+      <span class="of">de ${script.length} · história ${esc(storyLabel(state.storyKey))}</span>
+    </div>
+
+    <div class="field">
+      <label for="fText">Fala ou narração</label>
+      <p class="hint">Escreva normalmente. Para começar um parágrafo novo, aperte Enter.</p>
+      <textarea id="fText">${esc(String(sc.text || '').replace(/\\n/g, '\n'))}</textarea>
+    </div>
+
+    <div class="field">
+      <label for="fImage">Imagem de fundo</label>
+      <p class="hint">Cole aqui o endereço direto da imagem (termina em .jpg, .png ou .webp).</p>
+      <div class="imgRow">
+        <div class="thumb" id="fThumb">sem imagem</div>
+        <input type="url" id="fImage" value="${esc(sc.image || '')}" placeholder="https://...">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Botões de escolha</label>
+      <p class="hint">Cada botão mostra um texto e leva o jogador para outra cena.</p>
+      <div id="choiceList">
+        ${(sc.choices || []).map((c, ci) => `
+          <div class="choice" data-ci="${ci}">
+            <div class="row">
+              <div>
+                <label for="ct${ci}" style="font-size:12.5px">Texto do botão</label>
+                <input type="text" id="ct${ci}" class="choiceText" value="${esc(c.text || '')}">
+              </div>
+              <div>
+                <label for="cn${ci}" style="font-size:12.5px">Leva para</label>
+                <select id="cn${ci}" class="choiceNext">${options(c._to)}</select>
+              </div>
+            </div>
+            <button type="button" class="btn small danger rmv" data-rm="${ci}">Remover este botão</button>
+          </div>`).join('')}
+      </div>
+      <button type="button" class="btn small" id="addChoice">Adicionar botão</button>
+    </div>
+  `;
+
+  updateThumb(sc.image);
+
+  $('#fText').addEventListener('input', e => {
+    sc.text = e.target.value;
+    renderSceneList();
+    renderScenePreview();
+    saveDraft();
+  });
+
+  $('#fImage').addEventListener('input', e => {
+    sc.image = e.target.value.trim();
+    updateThumb(sc.image);
+    renderScenePreview();
+    saveDraft();
+  });
+
+  $$('.choiceText', box).forEach((inp, ci) => {
+    inp.addEventListener('input', e => {
+      sc.choices[ci].text = e.target.value;
+      renderScenePreview();
+      saveDraft();
+    });
+  });
+
+  $$('.choiceNext', box).forEach((sel, ci) => {
+    sel.addEventListener('change', e => {
+      sc.choices[ci]._to = e.target.value === '__menu__' ? null : e.target.value;
+      renderScenePreview();
+      saveDraft();
+    });
+  });
+
+  $$('[data-rm]', box).forEach(btn => {
+    btn.addEventListener('click', () => {
+      sc.choices.splice(Number(btn.dataset.rm), 1);
+      renderSceneForm(); renderScenePreview(); saveDraft();
+    });
+  });
+
+  $('#addChoice').addEventListener('click', () => {
+    sc.choices = sc.choices || [];
+    const next = script[state.sceneIdx + 1];
+    sc.choices.push({ text: 'Continuar', _to: next ? next._id : null });
+    renderSceneForm(); renderScenePreview(); saveDraft();
+  });
+
+  renderScenePreview();
+}
+
+function updateThumb(url){
+  const el = $('#fThumb');
+  if (!el) return;
+  if (!url){ el.style.backgroundImage = ''; el.textContent = 'sem imagem'; return; }
+  const probe = new Image();
+  probe.onload = () => { el.style.backgroundImage = `url("${url}")`; el.textContent = ''; };
+  probe.onerror = () => { el.style.backgroundImage = ''; el.textContent = 'este link não carregou'; };
+  probe.src = url;
+}
+
+function renderScenePreview(){
+  const script = currentScript();
+  const sc = script[state.sceneIdx];
+  const box = $('#scenePreview');
+  if (!sc){ box.innerHTML = ''; return; }
+  const text = String(sc.text || '').replace(/\\n/g, '\n');
+  box.innerHTML = `
+    <div class="pvFrame">
+      <div class="pvImage" id="pvImg">${sc.image ? '' : 'nenhuma imagem definida'}</div>
+      <div class="pvText">
+        <div class="narr">${esc(text) || '<em>sem texto</em>'}</div>
+        <div class="btns">
+          ${(sc.choices || []).map((c, i) =>
+            `<button type="button" data-go="${i}">${esc(c.text || '(botão sem texto)')}</button>`).join('')
+            || '<span style="font-size:13px;opacity:.75">nenhum botão nesta cena</span>'}
+        </div>
+      </div>
+    </div>
+    <p class="pvNote">Clique em um botão para seguir o caminho da história, como o jogador faria.</p>
+  `;
+  if (sc.image) $('#pvImg').style.backgroundImage = `url("${sc.image}")`;
+  $$('[data-go]', box).forEach(btn => {
+    btn.addEventListener('click', () => {
+      const c = sc.choices[Number(btn.dataset.go)];
+      if (c._to == null){ toast('Este botão devolve o jogador ao menu de histórias.'); return; }
+      const idx = script.findIndex(s => s._id === c._to);
+      if (idx < 0){ toast('Este botão não aponta para nenhuma cena existente.'); return; }
+      state.sceneIdx = idx;
+      renderSceneList(); renderSceneForm();
+    });
+  });
+}
+
+/* ---------------- aba: tela inicial ---------------- */
+function textField(id, label, value, hint){
+  return `
+    <div class="field">
+      <label for="${id}">${esc(label)}</label>
+      ${hint ? `<p class="hint">${esc(hint)}</p>` : ''}
+      <input type="text" id="${id}" value="${esc(value == null ? '' : value)}">
+    </div>`;
+}
+
+function renderPageForms(){
+  const p = state.page;
+  const mk = (keys, target) => {
+    $(target).innerHTML = keys.map(k => {
+      const f = PAGE_FIELDS.find(x => x.key === k);
+      if (!f || p[k] == null) return '';
+      return textField('pf_' + k, f.label, p[k]);
+    }).join('');
+    keys.forEach(k => {
+      const el = $('#pf_' + k);
+      if (el) el.addEventListener('input', e => { p[k] = e.target.value; saveDraft(); });
+    });
+  };
+
+  mk(['headerTitle', 'linkSobre', 'linkFontes', 'linkContato'], '#headerForm');
+  mk(['introTitle', 'introText', 'startButton', 'menuTitle'], '#introForm');
+
+  $('#cardsForm').innerHTML = Object.keys(p.cards || {}).map(k =>
+    textField('card_' + k, 'Cartão “' + k + '”', p.cards[k])).join('')
+    || '<p class="hint">Nenhum cartão encontrado neste arquivo.</p>';
+
+  Object.keys(p.cards || {}).forEach(k => {
+    const el = $('#card_' + k);
+    if (el) el.addEventListener('input', e => {
+      p.cards[k] = e.target.value;
+      renderStorySelect(); renderSceneForm(); saveDraft();
+    });
+  });
+}
+
+/* ---------------- aba: janelas ---------------- */
+const INFO_LABELS = { sobre:'Janela “Sobre”', fontes:'Janela “Fontes”', contato:'Janela “Contato”' };
+
+function renderInfoForm(){
+  const box = $('#infoForm');
+  if (!state.infoTexts){
+    box.innerHTML = '<p class="hint">Este arquivo não tem o bloco das janelas de informação.</p>';
+    return;
+  }
+  box.innerHTML = `
+    <div class="alert">Aqui o texto vem com algumas marcações entre sinais de menor e maior. Troque somente as palavras; mantenha as marcações no lugar. O quadro ao lado mostra como a janela vai aparecer.</div>
+    ${Object.keys(state.infoTexts).map(k => `
+      <div class="field">
+        <label for="info_${k}">${esc(INFO_LABELS[k] || k)}</label>
+        <div class="infoGrid">
+          <textarea id="info_${k}">${esc(state.infoTexts[k])}</textarea>
+          <div class="infoPv" id="infopv_${k}"></div>
+        </div>
+      </div>`).join('')}
+  `;
+  Object.keys(state.infoTexts).forEach(k => {
+    const ta = $('#info_' + k), pv = $('#infopv_' + k);
+    pv.innerHTML = state.infoTexts[k];
+    ta.addEventListener('input', e => {
+      state.infoTexts[k] = e.target.value;
+      pv.innerHTML = e.target.value;
+      saveDraft();
+    });
+  });
+}
+
+/* ---------------- eventos gerais ---------------- */
+$('#storySelect').addEventListener('change', e => {
+  state.storyKey = e.target.value;
+  state.sceneIdx = 0;
+  renderSceneList(); renderSceneForm();
+});
+
+$('#sceneList').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-idx]');
+  if (!btn) return;
+  state.sceneIdx = Number(btn.dataset.idx);
+  renderSceneList(); renderSceneForm();
+});
+
+$('#addScene').addEventListener('click', () => {
+  const script = currentScript();
+  const novo = { _id: uid(), text: '', image: '', choices: [{ text: 'Continuar', _to: null }] };
+  script.splice(state.sceneIdx + 1, 0, novo);
+  state.sceneIdx += 1;
+  renderSceneList(); renderSceneForm(); saveDraft();
+  toast('Cena criada. As cenas seguintes foram renumeradas e os caminhos continuam corretos.', 4200);
+});
+
+$('#delScene').addEventListener('click', () => {
+  const script = currentScript();
+  if (script.length <= 1) return;
+  const alvo = script[state.sceneIdx];
+  if (!confirm('Excluir a cena ' + String(state.sceneIdx + 1).padStart(2, '0') + '? Esta ação não pode ser desfeita.')) return;
+  script.splice(state.sceneIdx, 1);
+  // botões que apontavam para a cena excluída passam a voltar ao menu
+  script.forEach(s => (s.choices || []).forEach(c => { if (c._to === alvo._id) c._to = null; }));
+  if (state.sceneIdx >= script.length) state.sceneIdx = script.length - 1;
+  renderSceneList(); renderSceneForm(); saveDraft();
+  toast('Cena excluída.');
+});
+
+function move(delta){
+  const script = currentScript();
+  const i = state.sceneIdx, j = i + delta;
+  if (j < 0 || j >= script.length) return;
+  const [item] = script.splice(i, 1);
+  script.splice(j, 0, item);
+  state.sceneIdx = j;
+  renderSceneList(); renderSceneForm(); saveDraft();
+}
+$('#moveUp').addEventListener('click', () => move(-1));
+$('#moveDown').addEventListener('click', () => move(1));
+
+$$('.tabs button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    $$('.tabs button').forEach(b => b.setAttribute('aria-selected', String(b === btn)));
+    $$('[data-panel]').forEach(p => { p.hidden = p.dataset.panel !== btn.dataset.tab; });
+  });
+});
+
+$('#saveGame').addEventListener('click', () => {
+  try { downloadFile(); }
+  catch (err){ toast('Não foi possível gerar o arquivo: ' + err.message, 6000); }
+});
+
+$('#testGame').addEventListener('click', () => {
+  try { testGame(); }
+  catch (err){ toast('Não foi possível abrir o teste: ' + err.message, 6000); }
+});
+
+$('#openAnother').addEventListener('click', () => {
+  if (!confirm('Abrir outro arquivo? As alterações que você ainda não salvou serão perdidas.')) return;
+  location.reload();
+});
+
+/* ---------------- criar e excluir histórias ---------------- */
+
+// transforma o nome digitado em um código interno válido (sem acentos nem espaços)
+function slug(nome){
+  let s = String(nome || '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  if (!s) s = 'historia';
+  if (/^[0-9]/.test(s)) s = 'h-' + s;
+  let base = s, n = 2;
+  while (state.scenarios[s]) s = base + '-' + (n++);
+  return s;
+}
+
+$('#addStory').addEventListener('click', () => {
+  const nome = (prompt('Nome da nova história, como vai aparecer no cartão do menu:', '') || '').trim();
+  if (!nome) return;
+  const key = slug(nome);
+  state.scenarios[key] = {
+    script: [{
+      _id: uid(),
+      text: '',
+      image: '',
+      choices: [{ text: 'Voltar ao menu', _to: null }]
+    }]
+  };
+  state.page.cards[key] = nome;
+  state.storyKey = key;
+  state.sceneIdx = 0;
+  renderStorySelect(); renderSceneList(); renderSceneForm(); renderPageForms(); saveDraft();
+  toast('História “' + nome + '” criada com uma cena em branco. O cartão dela aparece no menu do jogo.', 5000);
+});
+
+$('#delStory').addEventListener('click', () => {
+  const keys = Object.keys(state.scenarios);
+  if (keys.length <= 1){ toast('O jogo precisa de pelo menos uma história.'); return; }
+  const nome = storyLabel(state.storyKey);
+  const qtd = currentScript().length;
+  if (!confirm('Excluir a história “' + nome + '” e suas ' + qtd + ' cena(s)? Esta ação não pode ser desfeita.')) return;
+  delete state.scenarios[state.storyKey];
+  delete state.page.cards[state.storyKey];
+  state.issues = (state.issues || []).filter(i => i.story !== state.storyKey);
+  state.orphans = (state.orphans || []).filter(o => o.story !== state.storyKey);
+  state.storyKey = Object.keys(state.scenarios)[0];
+  state.sceneIdx = 0;
+  renderAll(); saveDraft();
+  toast('História “' + nome + '” excluída.');
+});
+
+/* ---------------- abertura do arquivo ---------------- */
+function handleFile(file){
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      loadSource(String(reader.result), file.name);
+      saveDraft();
+      showWorkspace();
+      toast('Arquivo aberto: ' + file.name);
+    } catch (err){
+      alert(err.message);
+    }
+  };
+  reader.onerror = () => alert('Não foi possível ler o arquivo. Tente novamente.');
+  reader.readAsText(file, 'UTF-8');
+}
+
+$('#dropzone').addEventListener('click', () => $('#fileInput').click());
+$('#dropzone').addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); $('#fileInput').click(); }
+});
+$('#fileInput').addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+
+['dragenter','dragover'].forEach(ev => $('#dropzone').addEventListener(ev, e => {
+  e.preventDefault(); $('#dropzone').classList.add('hot');
+}));
+['dragleave','drop'].forEach(ev => $('#dropzone').addEventListener(ev, e => {
+  e.preventDefault(); $('#dropzone').classList.remove('hot');
+}));
+$('#dropzone').addEventListener('drop', e => {
+  const f = e.dataTransfer.files[0];
+  if (f) handleFile(f);
+});
+
+/* ---------------- rascunho guardado ---------------- */
+(function initDraft(){
+  const d = loadDraftInfo();
+  if (!d || !d.source) return;
+  const quando = new Date(d.at).toLocaleString('pt-BR');
+  $('#restoreMsg').textContent = 'Há um trabalho em andamento de ' + quando + ' (' + d.fileName + ').';
+  $('#restoreBar').style.display = 'flex';
+  $('#restoreBtn').addEventListener('click', () => {
+    try {
+      state.source = d.source;
+      state.fileName = d.fileName;
+      state.scenarios = d.scenarios;
+      state.infoTexts = d.infoTexts;
+      state.page = d.page;
+      state.storyKey = Object.keys(d.scenarios)[0] || '';
+      state.sceneIdx = 0;
+      state.loaded = true;
+      // garante identificadores válidos após a volta do armazenamento
+      Object.keys(state.scenarios).forEach(k => {
+        (state.scenarios[k].script || []).forEach(sc => { if (!sc._id) sc._id = uid(); });
+      });
+      showWorkspace();
+      toast('Trabalho recuperado.');
+    } catch (e){ alert('Não foi possível recuperar o trabalho anterior.'); }
+  });
+  $('#discardBtn').addEventListener('click', () => {
+    localStorage.removeItem(STORAGE_KEY);
+    $('#restoreBar').style.display = 'none';
+  });
+})();
+
+window.addEventListener('beforeunload', e => {
+  if (state.loaded){ e.preventDefault(); e.returnValue = ''; }
+});
+</script>
+</body>
+</html>
